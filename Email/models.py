@@ -29,7 +29,7 @@ class UserCategory(models.Model):
     category = models.ForeignKey('Category', on_delete=models.CASCADE)
     
     class Meta:
-        db_table = 'user_category'
+        db_table = 'subscribe'
         
 class UserEmail(models.Model):
     user = models.ForeignKey('user.User', on_delete=models.CASCADE)
