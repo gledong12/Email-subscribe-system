@@ -11,12 +11,12 @@ class category(models.Model):
         return f'{self.name}'
         
 class Email(models.Model):
-    subject = models.CharField(max_length=100)
-    content = models.TextField()
+    subject    = models.CharField(max_length=100)
+    content    = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(auto_now=True, null=True)
-    user_id = models.ForeignKey('user.User', on_delete=models.SET_NULL)
+    user       = models.ForeignKey('user.User', on_delete=models.SET_NULL, null=True, related_name='User')
     
     class Meta:
         db_table = 'emails'
@@ -25,14 +25,14 @@ class Email(models.Model):
         return f'{self.subject}'
         
 class UserCategory(models.Model):
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    user     = models.ForeignKey('user.User', on_delete=models.CASCADE)
     category = models.ForeignKey('Category', on_delete=models.CASCADE)
     
     class Meta:
         db_table = 'subscribe'
         
 class UserEmail(models.Model):
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    user  = models.ForeignKey('user.User', on_delete=models.CASCADE)
     email = models.ForeignKey('Email', on_delete=models.CASCADE)
     
     class Meta:
