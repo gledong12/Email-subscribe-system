@@ -1,7 +1,7 @@
-from django.db import models
+from django.db   import models
 from user.models import models
 
-class category(models.Model):
+class Category(models.Model):
     name = models.CharField(max_length=50)
     
     class Meta:
