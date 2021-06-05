@@ -16,7 +16,7 @@ class Email(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(auto_now=True, null=True)
-    user       = models.ForeignKey('user.User', on_delete=models.SET_NULL, null=True, related_name='User')
+    user       = models.ManyToManyField('user.User', through='UserEmail', related_name='User')
     
     class Meta:
         db_table = 'emails'
