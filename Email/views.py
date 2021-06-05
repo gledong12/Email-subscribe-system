@@ -1,8 +1,7 @@
 import json
-from re import sub
+import datetime
 
-
-from django.http      import JsonResponse, HttpResponse
+from django.http      import JsonResponse
 from django.views     import View
 from django.db.models import Q
 
@@ -19,6 +18,7 @@ class SubscribeView(View):
             user      = request.user
             category  = data['category']
             
+            print(data)
             print(user, category)
             
             # if not User.objects.filter(name=user):
@@ -65,9 +65,11 @@ class SubscribeView(View):
     
 # 구독 중인 모든 유저 에게 메일을 전송하는 API
 class SendingMailView(View):
+    @login_decorator
     def post(self, request):
         try:
             data    = json.loads(request.body)
+            sender = request.user
             subject = data['subject']
             content = data['content']
             users   = User.objects.all()
@@ -80,7 +82,8 @@ class SendingMailView(View):
             
             Email.objects.create(
                 subject = subject,
-                content = content
+                content = content,
+                sender  = sender.name
             )
             
             for user in users:
@@ -95,8 +98,40 @@ class SendingMailView(View):
         except KeyError:
             return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
     
+    def get(self, request):
+        emails = Email.objects.all()
+        
+        email_list=[{
+            'ID' : email.id,
+            'Created_at' : email.created_at,
+            'Updated_at' : email.updated_at,
+            'Deleted_at' : email.deleted_at,
+            'Sender'     : email.user.name,
+            # 'Receiver'   : receive.name for receive in email.user.all(),
+            'Subject'    : email.subject,
+            'Content'    : email.content
+            
+        } for email in emails]
+        
+        return JsonResponse({'message' : 'success', 'email_list' : email_list}, status=200)
+        
+    @login_decorator
     def delete(self, request):
-        pass
+        try:
+            user = request.user
+            data = json.loads(request.body)
+            delete_subject = data['subject']
+            
+            if not Email.objects.filter(subject=delete_subject).exists():
+                return JsonResponse({'message' : 'INVALID_SUBJECT'}, stauts=400)
+            deleted_id = Email.objects.get(subject=delete_subject).id
+            Email.objects.get(subject=delete_subject).delete()
+            Email.objects.filter(id=deleted_id).update(deleted_at=datetime.date.today())
+            
+            return JsonResponse({'message' : 'success'} , status=201)
+        except KeyError:
+            return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
+        
 
 class SearchEmaillistView(View):
     def get(self, request):
