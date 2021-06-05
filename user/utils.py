@@ -28,14 +28,10 @@ def login_check(func):
 def login_decorator(func):
     def wrapper(self, request, *args, **kwargs):
         try:
-            print('111111111111111111')
-            print(request.headers)
-            # access_token = request.headers.get('Authorization')
-            access_token ="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyX2lkIjoxfQ.GBZxP1g2WDnxWMdm7d_Mv5Af9Bzo4ierAuia2QhYp5HvpbTFeKeRknF7ZTqTLBHR8IMfYEFVqfI4paQAwSD_wQ"
-            # print(access_token)
+            access_token = request.headers['Authorization']    
             payload      = jwt.decode(access_token, SECRET_KEY, algorithm=ALGORITHM)
             login_user   = User.objects.get(id=payload['user_id'])
-            request.user = login_user
+            request.user = login_user                        
             return func(self, request, *args, **kwargs)
         except jwt.DecodeError:
             return JsonResponse({'message': 'INVALID_TOKEN'}, status=401)

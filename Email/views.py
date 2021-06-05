@@ -1,9 +1,9 @@
 import json
 import datetime
 
-from django.http      import JsonResponse
-from django.views     import View
-from django.db.models import Q
+from django.http       import JsonResponse
+from django.views      import View
+from django.db.models  import Q
 
 from user.utils    import login_decorator
 from Email.models  import Category, Email, UserCategory, UserEmail
@@ -14,30 +14,21 @@ class SubscribeView(View):
     @login_decorator
     def post(self, request):
         try:
-            data      = json.loads(request.body)
-            user      = request.user
-            category  = data['category']
-            
-            print(data)
-            print(user, category)
-            
-            # if not User.objects.filter(name=user):
-            #     return JsonResponse({'message' : 'INVALID_USER'}, status=400)
+            user_id     = request.user.id
+            data     = request.POST
+            category = data['category']
             
             if not Category.objects.filter(name=category).filter().exists():
                 return JsonResponse({'message' : 'INVALID_CATEGORY'}, status=400)
             
-            print('11111111111111111111111111111111111')
-            user      = User.objects.get(name=user).id
             category  = Category.objects.get(name=category).id
 
-            print('22222222222222222222222')
-            if UserCategory.objects.filter(user_id=user, category_id=category).exists():
-                UserCategory.objects.get(user_id=user, category_id=category).delete()
+            if UserCategory.objects.filter(user_id=user_id, category_id=category).exists():
+                UserCategory.objects.get(user_id=user_id, category_id=category).delete()
                 return JsonResponse({'message' : 'SUCCESS'}, status=201)
     
             UserCategory.objects.create(
-                user_id      = user,
+                user_id      = user_id,
                 category_id  = category
             )
             
@@ -47,17 +38,16 @@ class SubscribeView(View):
         
     # 구독자 조회 API
     def get(self, request):
-        category_list = request.GET.get('category', None)
+        category_list = request.GET.getlist('category', None)
         q = Q()
         
-        if category_list:
+        if category_list:    
             for category in category_list:
-                Q.add(Q(category=category), q.AND)
-        
+                q.add(Q(category__name=category), q.OR)
         subscribes = UserCategory.objects.filter(q)
         
         subscribe_list = [{
-            'category' : subscribe.category.name,
+            'category'   : subscribe.category.name,
             'subscriber' : subscribe.user.name
         } for subscribe in subscribes]
         
@@ -68,51 +58,60 @@ class SendingMailView(View):
     @login_decorator
     def post(self, request):
         try:
-            data    = json.loads(request.body)
-            sender = request.user
-            subject = data['subject']
-            content = data['content']
-            users   = User.objects.all()
-            
+            sender_id  = request.user.id
+            data       = request.POST
+            category   = data['category']
+            subject    = data['subject']
+            content    = data['content']
+            users      = User.objects.all()
             mail = [{
                 'mailto' : user.name,
                 'subject' : subject,
                 'content' : content
             } for user in users]
             
-            Email.objects.create(
+            sender = User.objects.filter(id=sender_id).first()
+            email=Email.objects.create(
                 subject = subject,
                 content = content,
-                sender  = sender.name
+                sender  = sender
             )
             
-            for user in users:
-                if not User.objects.filter(name=user.name).exists():
-                    return JsonResponse({'message' : 'INVALID_USER'}, status=400)
-                user  = User.objects.get(name=user.name).id
-                email = Email.objects.get(subject=subject).id
-                
-                user.email.add(user)
+            category_id = Category.objects.get(name=category).id
+            
+            subscribers = UserCategory.objects.filter(category_id=category_id)
+            for subscriber in subscribers:
+                receiver  = subscriber.user_id
+                email_id = email.id
+                UserEmail.objects.create(
+                    user_id = receiver,
+                    email_id = email_id
+                )
                 
             return JsonResponse({'status' : 'success', 'mail_list' : mail }, status=200)
         except KeyError:
             return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
-    
-    def get(self, request):
-        emails = Email.objects.all()
+
+# 이메일 발송리스트 조회
+class GetSendingListView(View):   
+    @login_decorator
+    def get(self,request, email_id):
+        emails = UserEmail.objects.filter(email_id=email_id)
+        print(emails)
+        email_list=[
+            {
+                'ID'         : email.email.id,
+                'Created_at' : email.email.created_at,
+                'Updated_at' : email.email.updated_at,
+                'Deleted_at' : email.email.deleted_at,
+                'Sender'     : email.email.sender.name,
+                'Receiver'   : email.user.name,
+                'Subject'    : email.email.subject,
+                'Content'    : email.email.content}
+            for email in emails]
+            # for receiver in email]
         
-        email_list=[{
-            'ID' : email.id,
-            'Created_at' : email.created_at,
-            'Updated_at' : email.updated_at,
-            'Deleted_at' : email.deleted_at,
-            'Sender'     : email.user.name,
-            # 'Receiver'   : receive.name for receive in email.user.all(),
-            'Subject'    : email.subject,
-            'Content'    : email.content
-            
-        } for email in emails]
-        
+        print(email_list)   
         return JsonResponse({'message' : 'success', 'email_list' : email_list}, status=200)
         
     @login_decorator
@@ -132,8 +131,27 @@ class SendingMailView(View):
         except KeyError:
             return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
         
-
-class SearchEmaillistView(View):
+# 메일 발송 이력조회
+class CheckShippingHistoryView(View):
     def get(self, request):
-        pass
-            
+        subject_list = request.GET.getlist('subject',None)
+        q = Q()
+        
+        if subject_list:    
+            for subject in subject_list:
+                q.add(Q(subject=subject), q.OR)
+
+        emails = Email.objects.filter(q)
+        
+        data = [{
+            'id' : email.id,
+            'subject' : email.subject,
+            'content' : email.content,
+            'subcriber': {
+                'id' : receiver.id,
+                'name' : receiver.name,
+                'subscribe_categories' : [category.category.name for category in UserCategory.objects.filter(user_id=receiver.id)]
+            } 
+            }for email in emails for receiver in email.receiver.all()]
+        
+        return JsonResponse({'message' : 'success', 'data' : data}, status=200)
