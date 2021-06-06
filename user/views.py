@@ -13,19 +13,15 @@ from user.models    import User
 class SignupView(View):
     def post(self, request):
         try:
-            data     = json.loads(request.body)
-            print(data)
+            print(request)
+            data = request.POST
             name     = data['name']
             email    = data['email']
             password = data['password']
-            print('111111111111111111111111111')
+            
             password_regex = re.compile("(?=.*\d)(?=.*[a-z]).{8,32}$", re.IGNORECASE)
             if not password_regex.match(password):
                 return JsonResponse({'message' : 'INVALID_PASSWORD'}, status=400)
-            
-            # # email_regex = re.compile("^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$")
-            # if  User.objects.filter(email=email).exists():
-            #     return JsonResponse({'message' : 'INVALID_EMAIL'}, status=400)
             
             if not name:
                 return JsonResponse({'message' : 'INVALID_NAME'}, status=400)
@@ -48,7 +44,7 @@ class SignupView(View):
 class SigninView(View):
     def post(self, request):
         try:
-            data = json.loads(request.body)
+            data = request.POST
             email = data['email']
             password = data['password']
             

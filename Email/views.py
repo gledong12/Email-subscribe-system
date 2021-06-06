@@ -15,27 +15,47 @@ class SubscribeView(View):
     def post(self, request):
         try:
             user_id     = request.user.id
-            data     = request.POST
-            category = data['category']
+            data        = request.POST
+            categories = data.getlist('category')
+            print(categories)
             
-            if not Category.objects.filter(name=category).filter().exists():
-                return JsonResponse({'message' : 'INVALID_CATEGORY'}, status=400)
-            
-            category  = Category.objects.get(name=category).id
-
-            if UserCategory.objects.filter(user_id=user_id, category_id=category).exists():
-                UserCategory.objects.get(user_id=user_id, category_id=category).delete()
-                return JsonResponse({'message' : 'SUCCESS'}, status=201)
-    
-            UserCategory.objects.create(
-                user_id      = user_id,
-                category_id  = category
-            )
-            
+            for category in categories: 
+                print(category)  
+                if not Category.objects.filter(name=category).filter().exists():
+                    return JsonResponse({'message' : 'INVALID_CATEGORY'}, status=400)
+                
+                category  = Category.objects.get(name=category).id
+        
+                UserCategory.objects.create(
+                    user_id      = user_id,
+                    category_id  = category
+                )
+                
             return JsonResponse({'message' : 'SUCCESS'}, status=200)
         except KeyError:
             return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
         
+    # 구독 취소 API
+    @login_decorator
+    def delete(self, request):
+        try:
+            user_id     = request.user.id
+            data        = request.POST
+            categories = data.getlist('category')
+            
+            for category in categories:  
+                if not Category.objects.filter(name=category).filter().exists():
+                    return JsonResponse({'message' : 'INVALID_CATEGORY'}, status=400)
+                
+                category  = Category.objects.get(name=category).id
+
+                if UserCategory.objects.filter(user_id=user_id, category_id=category).exists():
+                    UserCategory.objects.get(user_id=user_id, category_id=category).delete()
+                    
+            return JsonResponse({'message' : 'SUCCESS'}, status=200)
+        except KeyError:
+            return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
+    
     # 구독자 조회 API
     def get(self, request):
         category_list = request.GET.getlist('category', None)
@@ -97,7 +117,6 @@ class GetSendingListView(View):
     @login_decorator
     def get(self,request, email_id):
         emails = UserEmail.objects.filter(email_id=email_id)
-        print(emails)
         email_list=[
             {
                 'ID'         : email.email.id,
