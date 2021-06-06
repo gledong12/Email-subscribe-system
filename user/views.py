@@ -13,7 +13,6 @@ from user.models    import User
 class SignupView(View):
     def post(self, request):
         try:
-            print(request)
             data = request.POST
             name     = data['name']
             email    = data['email']
@@ -32,9 +31,9 @@ class SignupView(View):
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             
             User.objects.create(
-                email = email,
+                email    = email,
                 password = hashed_password,
-                name = name
+                name     = name
             )
             return JsonResponse({'message' : 'SUCCESS'}, status=201)
         

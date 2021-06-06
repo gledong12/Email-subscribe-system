@@ -4,7 +4,7 @@ MAINTAINER Backend Developer DONG
 
 ENV PYTHONUNBUFFERED 1
 
-COPY requirements.txt /usr/src//Email_Subscribe/
+COPY requirements.txt /usr/src/Email_Subscribe/
 
 WORKDIR /usr/src//Email_Subscribe
 
