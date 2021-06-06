@@ -25,6 +25,9 @@ class SubscribeView(View):
                     return JsonResponse({'message' : 'INVALID_CATEGORY'}, status=400)
                 
                 category  = Category.objects.get(name=category).id
+                
+                if UserCategory.objects.filter(user_id=user_id, category_id=category).exists():
+                    return JsonResponse({'message' : 'ALREADY_SUBSCRIBE'}, status=400)
         
                 UserCategory.objects.create(
                     user_id      = user_id,
@@ -34,29 +37,36 @@ class SubscribeView(View):
             return JsonResponse({'message' : 'SUCCESS'}, status=200)
         except KeyError:
             return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
+    
+     
+    
         
     # 구독 취소 API
+class UnSubscribeView(View): 
     @login_decorator
-    def delete(self, request):
+    def post(self, request):
         try:
             user_id     = request.user.id
             data        = request.POST
+            print(data)
             categories = data.getlist('category')
             
+            print(categories)
             for category in categories:  
                 if not Category.objects.filter(name=category).filter().exists():
                     return JsonResponse({'message' : 'INVALID_CATEGORY'}, status=400)
                 
                 category  = Category.objects.get(name=category).id
-
-                if UserCategory.objects.filter(user_id=user_id, category_id=category).exists():
-                    UserCategory.objects.get(user_id=user_id, category_id=category).delete()
-                    
+                print(category)
+                if not UserCategory.objects.filter(user_id=user_id, category_id=category).exists():
+                    return JsonResponse({'message' : 'DO_NOT_EXIST_IN_SUBSCRIBE_LIST'})
+                UserCategory.objects.get(user_id=user_id, category_id=category).delete()        
             return JsonResponse({'message' : 'SUCCESS'}, status=200)
         except KeyError:
             return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
     
-    # 구독자 조회 API
+ # 구독자 조회 API
+class CheckingSubscriberView(View):
     def get(self, request):
         category_list = request.GET.getlist('category', None)
         q = Q()
@@ -72,7 +82,8 @@ class SubscribeView(View):
         } for subscribe in subscribes]
         
         return JsonResponse({'message' : 'SUCCESS', 'subscribe_list' : subscribe_list}, status=200)
-    
+
+ 
 # 구독 중인 모든 유저 에게 메일을 전송하는 API
 class SendingMailView(View):
     @login_decorator
@@ -83,12 +94,15 @@ class SendingMailView(View):
             category   = data['category']
             subject    = data['subject']
             content    = data['content']
-            users      = User.objects.all()
+            
+            category_id = Category.objects.get(name=category).id
+            subscribers = UserCategory.objects.filter(category_id=category_id)
+            
             mail = [{
-                'mailto' : user.name,
+                'mailto' : subscriber.user.name,
                 'subject' : subject,
                 'content' : content
-            } for user in users]
+            } for subscriber in subscribers]
             
             sender = User.objects.filter(id=sender_id).first()
             email=Email.objects.create(
@@ -97,9 +111,6 @@ class SendingMailView(View):
                 sender  = sender
             )
             
-            category_id = Category.objects.get(name=category).id
-            
-            subscribers = UserCategory.objects.filter(category_id=category_id)
             for subscriber in subscribers:
                 receiver  = subscriber.user_id
                 email_id = email.id
@@ -158,17 +169,20 @@ class CheckShippingHistoryView(View):
         
         if subject_list:    
             for subject in subject_list:
+                if not Email.objects.filter(subject=subject).exists():
+                    return JsonResponse({'message' : 'INVALID_SUBJECT'}, status=400)
                 q.add(Q(subject=subject), q.OR)
-
+            
         emails = Email.objects.filter(q)
         
         data = [{
-            'id' : email.id,
-            'subject' : email.subject,
-            'content' : email.content,
+            'id'       : email.id,
+            'subject'  : email.subject,
+            'content'  : email.content,
             'subcriber': {
-                'id' : receiver.id,
-                'name' : receiver.name,
+                'id'     : receiver.id,
+                'email'  : receiver.email,
+                'name'   : receiver.name,
                 'subscribe_categories' : [category.category.name for category in UserCategory.objects.filter(user_id=receiver.id)]
             } 
             }for email in emails for receiver in email.receiver.all()]
