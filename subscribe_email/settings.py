@@ -1,13 +1,11 @@
 
 from pathlib import Path
 
-from . import my_settings
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-
-SECRET_KEY = my_settings.SECRET_KEY
+SECRET_KEY = 'x0$(59qu#l_r&_@th9p7@4ynuu$=6r%2mf#lw9m^b_qg-g=!h+'
 
 DEBUG = True
 
@@ -63,8 +61,16 @@ WSGI_APPLICATION = 'subscribe_email.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASES = my_settings.DATABASES
-
+DATABASES = 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'Herren',
+        'USER': 'admin',
+        'PASSWORD': 'password',
+        'HOST': 'db',
+        'PORT': '3306',
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
