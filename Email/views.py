@@ -9,7 +9,7 @@ from user.utils    import login_decorator
 from Email.models  import Category, Email, UserCategory, UserEmail
 from user.models   import User
 
-# 메일 구독, 취소 API
+# 메일 구독API
 class SubscribeView(View):
     @login_decorator
     def post(self, request):
@@ -17,10 +17,8 @@ class SubscribeView(View):
             user_id     = request.user.id
             data        = request.POST
             categories = data.getlist('category')
-            print(categories)
-            
+           
             for category in categories: 
-                print(category)  
                 if not Category.objects.filter(name=category).filter().exists():
                     return JsonResponse({'message' : 'INVALID_CATEGORY'}, status=400)
                 
@@ -37,10 +35,7 @@ class SubscribeView(View):
             return JsonResponse({'message' : 'SUCCESS'}, status=200)
         except KeyError:
             return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
-    
-     
-    
-        
+          
     # 구독 취소 API
 class UnSubscribeView(View): 
     @login_decorator

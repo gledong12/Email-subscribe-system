@@ -7,9 +7,6 @@ class Category(models.Model):
     class Meta:
         db_table = 'categories'
     
-    def __str__(self):
-        return f'{self.name}'
-        
 class Email(models.Model):
     subject    = models.CharField(max_length=100)
     content    = models.TextField()
@@ -21,9 +18,6 @@ class Email(models.Model):
     
     class Meta:
         db_table = 'emails'
-        
-    def  __str__(self):
-        return f'{self.subject}'
         
 class UserCategory(models.Model):
     user     = models.ForeignKey('user.User', on_delete=models.CASCADE)
