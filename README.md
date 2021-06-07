@@ -48,7 +48,7 @@ The source code is currently hosted on GitHub at:
 https://github.com/gledong12/Email-subscribe-system
 
 ## Requirements
-    - Docker(https://www.docker.com/get-started)
+Docker: https://www.docker.com/get-started
 
 ## Installation from the git repo
 ```sh
