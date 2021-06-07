@@ -24,12 +24,12 @@
 └── wait-for-it.sh
 ```
 * `Email`: Include API function code related to supscription and send mail
-        * `SubscribeView` : The functions to accepts mail supscription requests that only the logged-in user receives a name, email or category
-        * `UnsubscribeView` : The functions to accepts mail unsupscription requests that only the logged-in user 
-        * `CheckingSubscriberView` : The function is that show full or subscription category userlist.
-        * `SendingMailView` : The function is sending mail to all subscribed users.
-        * `GetSendingListView` : The funtion is look up the sent email list
-        * `CheckShippingHistoryView` : The function is mailing History inquiry
+    * `SubscribeView` : The functions to accepts mail supscription requests that only the logged-in user receives a name, email or category
+    * `UnsubscribeView` : The functions to accepts mail unsupscription requests that only the logged-in user 
+    * `CheckingSubscriberView` : The function is that show full or subscription category userlist.
+    * `SendingMailView` : The function is sending mail to all subscribed users.
+    * `GetSendingListView` : The funtion is look up the sent email list
+    * `CheckShippingHistoryView` : The function is mailing History inquiry
 * `user` : Include API feature code related to the user
     * `Signup` : The function is to sign up for membership.
     * `Signin` : The function issues tokens to users who have successfully logged in.
@@ -53,7 +53,7 @@ https://github.com/gledong12/Email-subscribe-system
 ## Installation from the git repo
 ```sh
 $ git clone https://github.com/gledong12/Email-subscribe-system
-$ cd door-access-control-system
+$ cd Email_Subscribe
 $ docker-compose up
 ```
 ## How to use
