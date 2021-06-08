@@ -9,7 +9,6 @@ from user.utils    import login_decorator
 from Email.models  import Category, Email, UserCategory, UserEmail
 from user.models   import User
 
-# 메일 구독
 class SubscribeView(View):
     @login_decorator
     def post(self, request):
@@ -54,7 +53,6 @@ class SubscribeView(View):
         
         return JsonResponse({'message' : 'SUCCESS', 'subscribe_list' : subscribe_list}, status=200)
           
-# 구독 취소 API
 class UnSubscribeView(View): 
     @login_decorator
     def post(self, request):
@@ -76,16 +74,15 @@ class UnSubscribeView(View):
         except KeyError:
             return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
  
-# 구독 중인 모든 유저 에게 메일을 전송하는 API
 class SendingMailView(View):
     @login_decorator
     def post(self, request):
         try:
-            sender_id  = request.user.id
-            data       = request.POST
+            sender_id      = request.user.id
+            data           = request.POST
             category_list  = data.getlist('category')     
-            subject    = data['subject']
-            content    = data['content']
+            subject        = data['subject']
+            content        = data['content']
             q = Q()
             
             if not category_list:
@@ -97,7 +94,7 @@ class SendingMailView(View):
             subscribers = UserCategory.objects.filter(q).prefetch_related('user')
 
             mail = [{
-                'mailto' : subscriber.user.name,
+                'mailto'  : subscriber.user.name,
                 'subject' : subject,
                 'content' : content
             } for subscriber in subscribers]
@@ -112,9 +109,9 @@ class SendingMailView(View):
             
             for subscriber in subscribers:
                 receiver  = subscriber.user_id
-                email_id = email.id
+                email_id  = email.id
                 UserEmail.objects.create(
-                    user_id = receiver,
+                    user_id  = receiver,
                     email_id = email_id
                 )
 
@@ -122,7 +119,6 @@ class SendingMailView(View):
         except KeyError:
             return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
 
-# 이메일 발송리스트 조회
 class GetSendingListView(View):   
     @login_decorator
     def get(self,request, email_id):
