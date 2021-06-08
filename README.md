@@ -83,4 +83,9 @@ Please use chrome or safari<br><br>
 ## How to use the api in Web Browser
 Try using a deployed web api !<br>
 Please check a document below for how to use the API<br><br>
-[The Document about How to use the API and Credentials](https://www.notion.so/How-to-use-the-API-fde08c71c2944c17a315a8afbc4298a1) <br>
+[The Document about How to use the API](https://www.notion.so/How-to-use-the-API-fde08c71c2944c17a315a8afbc4298a1) <br>
+
+## ISSUE
+I met and solved various issues during the project<br>
+The URL below is a document about the issue in progress of the project<br><br>
+[The Document about ISSUE](https://www.notion.so/Issue-0d1c139318d14fecab30f1302f5fde79)
