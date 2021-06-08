@@ -9,14 +9,14 @@ from user.utils    import login_decorator
 from Email.models  import Category, Email, UserCategory, UserEmail
 from user.models   import User
 
-# 메일 구독API
+# 메일 구독
 class SubscribeView(View):
     @login_decorator
     def post(self, request):
         try:
             user_id     = request.user.id
             data        = request.POST
-            categories = data.getlist('category')
+            categories  = data.getlist('category')
            
             for category in categories: 
                 if not Category.objects.filter(name=category).filter().exists():
@@ -35,40 +35,16 @@ class SubscribeView(View):
             return JsonResponse({'message' : 'SUCCESS'}, status=200)
         except KeyError:
             return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
-          
-    # 구독 취소 API
-class UnSubscribeView(View): 
-    @login_decorator
-    def post(self, request):
-        try:
-            user_id     = request.user.id
-            data        = request.POST
-            print(data)
-            categories = data.getlist('category')
-            
-            print(categories)
-            for category in categories:  
-                if not Category.objects.filter(name=category).filter().exists():
-                    return JsonResponse({'message' : 'INVALID_CATEGORY'}, status=400)
-                
-                category  = Category.objects.get(name=category).id
-                print(category)
-                if not UserCategory.objects.filter(user_id=user_id, category_id=category).exists():
-                    return JsonResponse({'message' : 'DO_NOT_EXIST_IN_SUBSCRIBE_LIST'})
-                UserCategory.objects.get(user_id=user_id, category_id=category).delete()        
-            return JsonResponse({'message' : 'SUCCESS'}, status=200)
-        except KeyError:
-            return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
     
- # 구독자 조회 API
-class CheckingSubscriberView(View):
+    @login_decorator
     def get(self, request):
         category_list = request.GET.getlist('category', None)
         q = Q()
         
-        if category_list:    
+        if not category_list:
             for category in category_list:
                 q.add(Q(category__name=category), q.OR)
+        
         subscribes = UserCategory.objects.filter(q)
         
         subscribe_list = [{
@@ -77,7 +53,28 @@ class CheckingSubscriberView(View):
         } for subscribe in subscribes]
         
         return JsonResponse({'message' : 'SUCCESS', 'subscribe_list' : subscribe_list}, status=200)
+          
+# 구독 취소 API
+class UnSubscribeView(View): 
+    @login_decorator
+    def post(self, request):
+        try:
+            user_id     = request.user.id
+            data        = request.POST
+            categories  = data.getlist('category')
+            
+            for category in categories:  
+                if not Category.objects.filter(name=category).filter().exists():
+                    return JsonResponse({'message' : 'INVALID_CATEGORY'}, status=400)
+                
+                category  = Category.objects.get(name=category).id
 
+                if not UserCategory.objects.filter(user_id=user_id, category_id=category).exists():
+                    return JsonResponse({'message' : 'DO_NOT_EXIST_IN_SUBSCRIBE_LIST'})
+                UserCategory.objects.get(user_id=user_id, category_id=category).delete()        
+            return JsonResponse({'message' : 'SUCCESS'}, status=200)
+        except KeyError:
+            return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
  
 # 구독 중인 모든 유저 에게 메일을 전송하는 API
 class SendingMailView(View):
@@ -86,13 +83,19 @@ class SendingMailView(View):
         try:
             sender_id  = request.user.id
             data       = request.POST
-            category   = data['category']
+            category_list  = data.getlist('category')     
             subject    = data['subject']
             content    = data['content']
+            q = Q()
             
-            category_id = Category.objects.get(name=category).id
-            subscribers = UserCategory.objects.filter(category_id=category_id)
+            if not category_list:
+                return JsonResponse({'message': 'DO_NOT_EXIST'}, status=400)
+            else:
+                for category in category_list:
+                    q.add(Q(category__name=category), q.OR)
             
+            subscribers = UserCategory.objects.filter(q).prefetch_related('user')
+
             mail = [{
                 'mailto' : subscriber.user.name,
                 'subject' : subject,
@@ -100,6 +103,7 @@ class SendingMailView(View):
             } for subscriber in subscribers]
             
             sender = User.objects.filter(id=sender_id).first()
+            
             email=Email.objects.create(
                 subject = subject,
                 content = content,
@@ -113,8 +117,8 @@ class SendingMailView(View):
                     user_id = receiver,
                     email_id = email_id
                 )
-                
-            return JsonResponse({'status' : 'success', 'mail_list' : mail }, status=200)
+
+            return JsonResponse({'message': 'success', 'mail_list' : mail}, status=200)
         except KeyError:
             return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
 
@@ -134,30 +138,26 @@ class GetSendingListView(View):
                 'Subject'    : email.email.subject,
                 'Content'    : email.email.content}
             for email in emails]
-            # for receiver in email]
         
-        print(email_list)   
         return JsonResponse({'message' : 'success', 'email_list' : email_list}, status=200)
-        
+    
+class DelteEmailView(View):    
     @login_decorator
-    def delete(self, request):
+    def post(self, request):
         try:
-            user = request.user
-            data = json.loads(request.body)
-            delete_subject = data['subject']
-            
-            if not Email.objects.filter(subject=delete_subject).exists():
-                return JsonResponse({'message' : 'INVALID_SUBJECT'}, stauts=400)
-            deleted_id = Email.objects.get(subject=delete_subject).id
-            Email.objects.get(subject=delete_subject).delete()
-            Email.objects.filter(id=deleted_id).update(deleted_at=datetime.date.today())
-            
-            return JsonResponse({'message' : 'success'} , status=201)
+            data            = request.POST
+            delete_email_id = data['email_id']
+
+            if not Email.objects.filter(id=delete_email_id).exists():
+                return JsonResponse({'message' : 'INVALID_SUBJECT'}, status=400)
+
+            Email.objects.filter(id=delete_email_id).update(deleted_at=datetime.date.today())
+            return JsonResponse({'message' : 'success'}, status=201)
         except KeyError:
             return JsonResponse({'message' : 'INVALID_KEY'}, status=400)
         
-# 메일 발송 이력조회
 class CheckShippingHistoryView(View):
+    @login_decorator
     def get(self, request):
         subject_list = request.GET.getlist('subject',None)
         q = Q()

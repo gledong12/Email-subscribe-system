@@ -7,7 +7,7 @@
 
 ----------
 ## What is it?
-**Email Subscribe System API**  is a system that receives subscription subscriptions along with name, email, and subscription category information and sends mail to subscribers of each category.
+**Email Subscribe System API** is a system that receives subscription data along with name, email, and subscription category and sends mail to subscribers according to each category.
 
 ## Project Structure
 ```
@@ -34,10 +34,11 @@
     * `CheckingSubscriberView` : The function is that show full or subscription category userlist.
     * `SendingMailView` : The function is sending mail to all subscribed users.
     * `GetSendingListView` : The funtion is look up the sent email list
+    * `DeleteEmailView` : The funtion is delete the email
     * `CheckShippingHistoryView` : The function is mailing History inquiry
 * `user` : Include API feature code related to the user
-    * `Signup` : The function is to sign up for membership.
-    * `Signin` : The function issues tokens to users who have successfully logged in.
+    * `SignupView` : The function is to sign up for membership.
+    * `SigninView` : The function issues tokens to users who have successfully logged in.
 * `Dockerfile` : Files that record packages, environment variables, etc. that need to be installed in a container
 * `docker-compose.yml` : Files for operating multiple containers (api, db) at a time
 * `requirements.txt` : Define libraries required for development and deployment
@@ -68,8 +69,18 @@ url lists are as follows
  - /api/v1/signin
  - /api/v1/subscribe
  - /api/v1/unsubscribe
- - /api/v1/checksubscribe
  - /api/v1/mail
  - /api/v1/inbox/<int:email_id>
+ - /api/v1/deleteemail
  - /api/v1/checkshipping
 ```
+## API test results in Development Server
+API test(integration test) used [POSTMAN](https://www.postman.com)<br>
+The URL below is a document about integration test in develop server<br>
+Please use chrome or safari<br><br>
+[The Document about API TEST](https://documenter.getpostman.com/view/14893614/TzY69Zj5)
+
+## How to use the api in Web Browser
+Try using a deployed web api !<br>
+Please check a document below for how to use the API<br><br>
+[The Document about How to use the API and Credentials](https://www.notion.so/How-to-use-the-API-fde08c71c2944c17a315a8afbc4298a1) <br>
