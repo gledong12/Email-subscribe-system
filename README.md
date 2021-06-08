@@ -1,4 +1,4 @@
-# Email_Subscribe_System_API
+# Email Subscribe System
 <div align="center">
   <img src="https://images.velog.io/images/eagle5424/post/120b7f03-79f8-4362-b2fe-0d8cee329bc3/Email%20(1).png"><br>
 </div>
