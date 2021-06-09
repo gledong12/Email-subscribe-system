@@ -1,4 +1,4 @@
-# Email Subscribe System
+# Email Subscribe Systemgi
 <div align="center">
   <img src="https://images.velog.io/images/eagle5424/post/120b7f03-79f8-4362-b2fe-0d8cee329bc3/Email%20(1).png"><br>
 </div>
@@ -88,4 +88,4 @@ Please check a document below for how to use the API<br><br>
 ## ISSUE
 I met and solved various issues during the project<br>
 The URL below is a document about the issue in progress of the project<br><br>
-[The Document about ISSUE](https://www.notion.so/Issue-0d1c139318d14fecab30f1302f5fde79)
+[The Document about ISSUE](https://www.notion.so/Issue-fa5db17ee1ee4433b2dbeb356e10f9b8)
